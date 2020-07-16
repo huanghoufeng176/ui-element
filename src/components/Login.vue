@@ -72,9 +72,6 @@ export default {
     dengluButton(){
       this.$refs.ruleForm.validate(valid=>{
         if(!valid) return;
-        // axios.post('http://timemeetyou.com:8889/api/private/v1/login',this.loginForm).then(res=>{
-        //   console.log(res)
-        // })
         request({
           method:'post',
           url:'login',
@@ -85,7 +82,7 @@ export default {
           }else{
             this.$message.success('登录成功')
             this.netLoginData=res
-            console.log(res.data)
+            // console.log(res.data)
             window.sessionStorage.setItem('token',res.data.data.token)
             this.$router.push('/home')
           }

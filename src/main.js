@@ -6,11 +6,13 @@ import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import 'assets/font/iconfont.css'
 import {Message} from 'element-ui'
+import {MessageBox} from 'element-ui'
 Vue.use(ElementUI);
 
 Vue.config.productionTip = false
 
 Vue.prototype.$message=Message
+Vue.prototype.$confirm=MessageBox.confirm
 
 new Vue({
   router,
