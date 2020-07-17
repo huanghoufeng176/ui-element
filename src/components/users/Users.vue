@@ -262,7 +262,7 @@ export default {
           method: "post",
           data: this.addFormDate
         }).then(res => {
-          if (res.data.meta.status != 201) {
+          if (res.data.meta.status !== 201) {
             return this.$message.error("获取数据失败");
           }
           this.$message.success("添加用户成功");
