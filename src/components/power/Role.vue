@@ -21,8 +21,8 @@
         <el-table-column prop="roleDesc" label="角色描述" width="300"></el-table-column>
         <el-table-column label="操作">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" icon="el-icon-edit">编辑</el-button>
-            <el-button size="mini" type="danger" icon="el-icon-delete">删除</el-button>
+            <el-button size="mini" type="primary" icon="el-icon-edit" @click="bianjiClick(scope.row.id)">编辑</el-button>
+            <el-button size="mini" type="danger" icon="el-icon-delete" @click="deleteClick(scope.row.id)">删除</el-button>
             <el-button size="mini" type="warning" icon="el-icon-share">分配权限</el-button>
           </template>
         </el-table-column>
@@ -31,10 +31,48 @@
 
     <!-- 添加按钮对话框 -->
     <el-dialog title="添加角色" :visible.sync="addDialog" width="50%">
-      <span>这是一段信息</span>
+      <!-- 添加角色表单区 -->
+      <el-form
+        :model="addRoleDate"
+        :rules="ruleRoleForm"
+        ref="ruleRefForm"
+        label-width="100px"
+        class="demo-ruleForm"
+      >
+        <el-form-item label="角色名称" prop="roleName">
+          <el-input v-model="addRoleDate.roleName"></el-input>
+        </el-form-item>
+        <el-form-item label="角色描述" prop="roleDesc">
+          <el-input v-model="addRoleDate.roleDesc"></el-input>
+        </el-form-item>
+      </el-form>
+
       <span slot="footer" class="dialog-footer">
-        <el-button @click="addDialog = false">取 消</el-button>
-        <el-button type="primary" @click="addDialog = false">确 定</el-button>
+        <el-button @click="quxiaoClick">取 消</el-button>
+        <el-button type="primary" @click="quedingClick">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!-- 点击便捷按钮跳出来的对话框 -->
+    <el-dialog title="编辑" :visible.sync="bianjixianshi" width="50%">
+      <!-- 编辑角色表单区 -->
+      <el-form
+        :model="bianjieData"
+        :rules="bianjiRules"
+        ref="ruleRefForm"
+        label-width="100px"
+        class="demo-ruleForm"
+      >
+        <el-form-item label="角色名称" prop="roleName">
+          <el-input v-model="bianjieData.roleName"></el-input>
+        </el-form-item>
+        <el-form-item label="角色描述" prop="roleDesc">
+          <el-input v-model="bianjieData.roleDesc"></el-input>
+        </el-form-item>
+      </el-form>
+
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="bianjiquxiao">取 消</el-button>
+        <el-button type="primary" @click="bianjiqueren">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -49,7 +87,42 @@ export default {
       //角色列表数据
       roleListData: [],
       //添加对话框，显示隐藏
-      addDialog:false,
+      addDialog: false,
+      //添加数据绑定
+      addRoleDate:{
+        roleName:'',
+        roleDesc:''
+      },
+      //添加数据验证规则
+      ruleRoleForm:{
+        roleName:[
+          { required: true, message: "请输入角色名称", trigger: "blur" },
+          { min: 3, max: 15, message: "长度在 3 到 5 个字符", trigger: "blur" }
+        ],
+        roleDesc:[
+          { required: true, message: "请输入角色描述", trigger: "blur" },
+          { min: 3, max: 15, message: "长度在 3 到 5 个字符", trigger: "blur" }
+        ]
+      },
+      //便捷数据
+      bianjieData:{
+        roleName:'',
+        roleDesc:''
+      },
+      //编辑规则
+      bianjiRules:{
+        roleName:[
+          { required: true, message: "请输入角色名称", trigger: "blur" },
+          { min: 3, max: 15, message: "长度在 3 到 5 个字符", trigger: "blur" }
+        ],
+        roleDesc:[
+          { required: true, message: "请输入角色描述", trigger: "blur" },
+          { min: 3, max: 15, message: "长度在 3 到 15 个字符", trigger: "blur" }
+        ]
+      },
+      //编辑对话框是否隐藏
+      bianjixianshi:false,
+       
     };
   },
   created() {
@@ -59,6 +132,22 @@ export default {
   watch: {},
   computed: {},
   methods: {
+    //添加按钮
+    addRoule() {
+      this.addDialog = true;
+    },
+    //添加列表中取消按钮
+    quxiaoClick(){
+      this.addDialog=false
+      this.$refs.ruleRefForm.resetFields()
+    },
+    //编辑取消
+    bianjiquxiao(){
+      this.bianjixianshi=false
+      // this.$refs.ruleRefForm.resetFields()
+    },
+    
+
     //获取角色列表数据
     getRoleData() {
       request({
@@ -72,19 +161,84 @@ export default {
         this.roleListData = res.data.data;
       });
     },
-    //添加角色数据
-    addRoule() {
-      this.addDialog=true
+    //添加对话框中，确定按钮发送网络请求添加数据
+    quedingClick(){
+      this.$refs.ruleRefForm.validate(valid=>{
+        if(!valid){
+          this.$message.error('校验失败')
+        }
+        this.addDialog=false
+        request({
+          url:'roles',
+          method:'post',
+          data:this.addRoleDate
+        }).then(res=>{
+          if(res.data.meta.status!==201){
+            this.$message.error('请求添加列表数据失败')
+          }
+          this.getRoleData()
+        })
+      })
+    },
+    //打开编辑按钮
+    bianjiClick(id){
+      this.bianjixianshi=true
       request({
-        url:'roles',
-        method:'post',
+        url:'roles/'+id,
+        method:'get',
+        params:this.bianjieData
+      }).then(res=>{
+        if(res.data.meta.status!==200){
+          this.$message.error('获取编辑数据失败')
+        }
+        this.bianjieData=res.data.data
+      })
+    },
+    //编辑确认
+    bianjiqueren(){
+      // console.log(this.bianjieData)
+      request({
+        url:'roles/'+this.bianjieData.roleId,
+        method:'put',
         data:{
-          roleName:this.roleListData.roleName,
-          roleDesc:this.roleListData.roleDesc
+          roleName:this.bianjieData.roleName,
+          roleDesc:this.bianjieData.roleDesc
         }
       }).then(res=>{
-        console.log(res)
+        this.$refs.ruleRefForm.validate(valid=>{
+          if(!valid){
+            this.$message.error('表单验证失败')
+          }
+          this.bianjieData=res.data.data
+          this.getRoleData()
+          this.bianjixianshi=false
+        })
       })
+    },
+    //删除信息
+    deleteClick(id){
+      // console.log(id)
+      this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(res=>{
+          request({
+            url:'roles/'+id,
+            method:'delete'
+          }).then(res=>{
+            if(res.data.status!==200){
+              this.$message.error('获取删除数据失败')
+            }
+            this.$message.success('删除数据成功')
+            this.getRoleData()
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
     }
   }
 };
