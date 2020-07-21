@@ -49,7 +49,7 @@
               placement="top"
               :enterable="false"
             >
-              <el-button type="warning" icon="el-icon-share"></el-button>
+              <el-button @click="fenpeijueseClick(scope.row)" type="warning" icon="el-icon-share"></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -60,7 +60,7 @@
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="usersData.pagenum"
-        :page-sizes="[1, 2, 3, 6]"
+        :page-sizes="[6,10,20]"
         :page-size="usersData.pagesize"
         layout="total, sizes, prev, pager, next, jumper"
         :total="total"
@@ -122,6 +122,27 @@
       <span slot="footer" class="dialog-footer">
         <el-button @click="bianjieDialog = false">取 消</el-button>
         <el-button type="primary" @click="bianjiUserClick">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 分配角色对话框 -->
+    <el-dialog title="分配角色" :visible.sync="juesebuer" width="50%">
+      <div>当前的用户 : {{yihangxinxi.username}}</div>
+      <div class="juese">当前的角色 ： {{yihangxinxi.role_name}}</div>
+      <div class="selected">
+        分配新角色:
+        <el-select v-model="xuzeId" placeholder="请选择">
+          <el-option
+            v-for="item in liebiaoData"
+            :key="item.id"
+            :label="item.roleDesc"
+            :value="item.id"
+          ></el-option>
+        </el-select>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="juesebuer = false">取 消</el-button>
+        <el-button type="primary" @click="fenpeiQuerenClick">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -189,7 +210,15 @@ export default {
           { required: true, message: "请输入用户名", trigger: "blur" },
           { min: 3, max: 15, message: "长度在 3 到 5 个字符", trigger: "blur" }
         ]
-      }
+      },
+      //分配角色对话框的显示隐藏
+      juesebuer: false,
+      //角色一行信息
+      yihangxinxi: {},
+      //列表数据
+      liebiaoData:{},
+      //下拉菜单选择上的id
+      xuzeId:'',
     };
   },
   created() {
@@ -316,16 +345,16 @@ export default {
         .then(res => {
           //删除网络请求
           request({
-            url:'users/'+id,
-            method:'delete'
-          }).then(res=>{
-            console.log(res)
-            if(res.data.meta.status!==200){
-              return this.$message.error('删除用户失败')
+            url: "users/" + id,
+            method: "delete"
+          }).then(res => {
+            console.log(res);
+            if (res.data.meta.status !== 200) {
+              return this.$message.error("删除用户失败");
             }
-            this.$message.success('删除用户成功')
-            this.getUserList()
-          })
+            this.$message.success("删除用户成功");
+            this.getUserList();
+          });
         })
         .catch(err => {
           this.$message({
@@ -333,6 +362,44 @@ export default {
             message: "已取消删除"
           });
         });
+    },
+    //点击分配角色按钮
+    fenpeijueseClick(libiao) {
+      this.yihangxinxi = libiao;
+      this.juesebuer = true;
+      request({
+        url: "roles",
+        method: "get"
+      }).then(res => {
+        if (res.data.meta.status !== 200) {
+          this.$message.error("获取列表数据失败");
+        }
+        this.liebiaoData = res.data.data;
+        console.log(this.liebiaoData)
+      });
+    },
+    //分配权限确认
+    fenpeiQuerenClick(){
+      console.log(this.yihangxinxi)
+      console.log(this.xuzeId)
+      if(!this.xuzeId){
+        return this.$message.error('请选择要分配的角色')
+      }
+      request({
+        url:`users/${this.yihangxinxi.id}/role`,
+        method:'put',
+        data:{
+          rid:this.xuzeId
+        }
+      }).then(res=>{
+        console.log(res)
+        if(res.data.meta.status!==200){
+          this.$message.error('设置失败')
+        }
+
+      //问题没有结局 
+      
+      })
     }
   }
 };
@@ -353,5 +420,11 @@ export default {
 }
 .el-form-item {
   margin-right: 10px;
+}
+.juese {
+  margin-top: 7px;
+}
+.selected{
+  margin-top: 7px;
 }
 </style>
