@@ -308,7 +308,7 @@ export default {
             url:'categories/' + this.chanxunData.cat_id,
             method:'delete',
           }).then(res=>{
-            console.log(res)
+            // console.log(res)
             if(res.data.meta.status!==200){
               this.$message.error('删除失败')
               return
