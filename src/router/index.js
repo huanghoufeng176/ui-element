@@ -16,6 +16,7 @@ const Welcome = () => import('components/Welcome.vue')
 const Users = () => import('components/users/Users.vue')
 const Rights = () => import('components/power/Rights.vue')
 const Role = () => import('components/power/Role.vue')
+const Categories = () => import('components/goods/Categories.vue')
 
 
 const router =new VueRouter({
@@ -27,6 +28,7 @@ const router =new VueRouter({
       {path:'/users',component:Users},
       {path:'/rights',component:Rights},
       {path:'/roles',component:Role},
+      {path:'/Categories',component:Categories}
     ]}
   ],
   mode:'history'
